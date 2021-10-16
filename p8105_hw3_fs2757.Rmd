@@ -6,25 +6,99 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+library(knitr)
+library(dplyr) 
+library(tidyr) 
+library(p8105.datasets)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
-## R Markdown
+# Quesiton 1
+```{r}
+data("instacart")
+```
+### How many aisles are there, and which aisles are the most items ordered from?
+```{r}
+totalaisle =instacart %>% 
+  group_by(aisle) %>% 
+  distinct()
+ 
+mostaisle=instacart %>% 
+  group_by(aisle) %>% 
+  summarize(count = n())%>% 
+  arrange(desc(count))
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+  mostaisle
+```
+### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+```{r}
+instacart %>% 
+  group_by(aisle) %>% 
+  summarize(count = n()) %>% 
+  filter(count > 10000) %>% 
+  ggplot() +
+  geom_bar(aes(x = count, y = aisle, fill = aisle),stat = 'identity') +
+  labs(title = "Aisles and number of ordered ",x = "number of item", y = "Aisle name",) +
+  theme_bw() + 
+  theme(legend.position = 'none',axis.text.y = element_text(size = 7))
+ 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```
+### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+```{r}
+rbind(
+  bakingingredients=instacart %>% 
+  filter(aisle == "baking ingredients") %>% 
+  group_by(aisle, product_name) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  head(3),
+  
+  dogfoodcare=instacart %>% 
+  filter(aisle == "dog food care") %>% 
+  group_by(aisle, product_name) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  head(3),
+  
+  packagedvegetablesfruits=instacart %>% 
+  filter(aisle == "packaged vegetables fruits") %>% 
+  group_by(aisle, product_name) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  head(3)
+  )%>%
+  knitr::kable()
+```
+### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+```{r}
+mean = instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples" ,"Coffee Ice Cream"))%>%
+  group_by(product_name, order_dow) %>% 
+  summarize(meanhour = mean(order_hour_of_day)) %>% 
+  pivot_wider(names_from = order_dow, values_from = meanhour)
 
-```{r cars}
-summary(cars)
+mean=mutate(
+  rename(mean,"Sun" = "0","Mon" = "1","Tue" = "2","Wed" = "3","Thur" = "4","Fri" = "5","Sat" = "6"))
+
+mean %>% knitr::kable()
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
