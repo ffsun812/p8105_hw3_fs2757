@@ -35,7 +35,7 @@ ncol(instacart)
 nrow(instacart)
 names(instacart)
 ```
-* in the data `instacart`, it has `r ncol(instacart)` columns and `r nrow(instacart)` rows. Also it has 15 different variable and the name of all of them is `r names(instacart)`. *
+*in the data `instacart`, it has `r ncol(instacart)` columns and `r nrow(instacart)` rows. Also it has 15 different variable and the name of all of them is `r names(instacart)`. *
 
 ### How many aisles are there, and which aisles are the most items ordered from?
 ```{r}
@@ -53,7 +53,7 @@ instacart %>%
 
 ```
 
-* In the data `instacart`, there are 134 asisles. Furthermore, the most items orders form the data is `fresh vegetables`. * 
+*In the data `instacart`, there are 134 aisles. Furthermore, the most items orders form the data is `fresh vegetables`. * 
 
 ### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 ```{r}
@@ -76,24 +76,21 @@ rbind(
   bakingingredients=instacart %>% 
   filter(aisle == "baking ingredients") %>% 
   group_by(aisle, product_name) %>% 
-  summarise(count = n())%>% 
-  arrange(desc(count)) %>% 
-  slice(1:3),
-  
+  summarise(count = n()),
+
   dogfoodcare=instacart %>% 
   filter(aisle == "dog food care") %>% 
   group_by(aisle, product_name) %>% 
-  summarise(count = n()) %>% 
-  arrange(desc(count)) %>% 
-  slice(1:3),
+  summarise(count = n()),
   
   packagedvegetablesfruits=instacart %>% 
   filter(aisle == "packaged vegetables fruits") %>% 
   group_by(aisle, product_name) %>% 
-  summarise(count = n()) %>% 
-  arrange(desc(count)) %>% 
-  slice(1:3))%>%
-  knitr::kable()
+  summarise(count = n())
+  ) %>%
+  arrange(desc(count))%>%
+  slice(1:3)%>% 
+ knitr::kable()
 ```
 
 ### Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
@@ -139,6 +136,8 @@ BRFSS %>%
   filter(countnumnber >= 7) %>% 
   knitr::kable()
 ```
+
+*In 2002, there are six states were observed at 7 or more locations, and the are CT,FL,MA,NC,NJ,PA. In 2010, there are 14 states were observed at 7 or more locations, and they are CA,CO,FL,MA,MD,NC,NE,NJ,NY,OH,PA,SC,TX,WA.*
 
 ### Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
 ```{r}
