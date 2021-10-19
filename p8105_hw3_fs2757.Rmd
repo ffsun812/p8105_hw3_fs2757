@@ -35,7 +35,7 @@ ncol(instacart)
 nrow(instacart)
 names(instacart)
 ```
-*in the data `instacart`, it has `r ncol(instacart)` columns and `r nrow(instacart)` rows. Also it has 15 different variable and the name of all of them is `r names(instacart)`. *
+*In the data `instacart`, it has `r ncol(instacart)` columns and `r nrow(instacart)` rows. Also it has 15 different variable and the name of all of them are `r names(instacart)`.*
 
 ### How many aisles are there, and which aisles are the most items ordered from?
 ```{r}
@@ -158,6 +158,7 @@ BRFSS %>%
   select(year,response,data_value)%>% 
   ggplot(aes(x = response, y = data_value)) +
   geom_point() +
+  geom_boxplot()+
   facet_grid(. ~ year)
 
 ```
@@ -168,9 +169,10 @@ BRFSS %>%
 acceldata=read_csv("accel_data.csv")%>% 
   janitor::clean_names()%>%
   pivot_longer(activity_1:activity_1440, 
-               names_to = "nameclass",
+               names_to = "minute",
+               names_prefix = "activity_",
                values_to = "sum_activity")%>%
-  mutate(day=factor(day),
+  mutate(day=factor(day,levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday")),
          weekday=factor(week),
          weekday_vs_weekend = recode(day,
                                      `Saturday` = "weekend",
@@ -180,29 +182,49 @@ acceldata=read_csv("accel_data.csv")%>%
                                      `Wednesday` = "weekday",
                                      `Thursday` = "weekday",
                                      `Friday` = "weekday"),
-         weekday_vs_weekend=factor(weekday_vs_weekend))%>%
-  arrange()
+         weekday_vs_weekend=factor(weekday_vs_weekend),
+         minute = as.numeric(minute))
+
 
 ```
 
 ### Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 ```{r}
 acceldata %>% 
-  group_by(day_id) %>% 
+  group_by(week, day) %>% 
   summarize(total = sum(sum_activity)) %>% 
+  pivot_wider(
+    names_from = day,
+    values_from =total
+  )  %>% 
   knitr::kable()
- 
+
+acceldata %>% 
+  group_by(day) %>% 
+  summarize(total = sum(sum_activity)) %>% 
+  pivot_wider(
+    names_from = day,
+    values_from =total
+  )  %>% 
+  knitr::kable()
 ```
+
+*From two table,it is obviously shows that the weekdays are higher than weekend.*
 
 ### Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 ```{r}
 acceldata %>% 
-    ggplot(aes(x =nameclass , y = sum_activity, color = day)) + 
+    ggplot(aes(x =minute , y = sum_activity, color = day, group = day_id)) + 
     geom_line() +
     labs(
-    title = "24h activity time",
-    x = "time",
-    y = "activity Count",
-    caption = "single-panel plot"
-  ) 
+      title = "24h activity time",
+      x = "minute",
+      y = "activity Count",
+    caption = "single-panel plot" + 
+    theme(
+      plot.title = element_text(size = 13, hjust = 0.5),
+      axis.title.x = element_text(size = 8),
+      axis.title.y = element_text(size = 8)))
 ```
+
+*From the table,Sunday at noon has the most active periods, and Friday in the evening has the most active periods.*
