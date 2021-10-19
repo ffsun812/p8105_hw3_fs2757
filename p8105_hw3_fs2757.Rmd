@@ -67,7 +67,6 @@ instacart%>%
   theme_bw() + 
   theme(legend.position = 'none',axis.text.y = element_text(size = 7))
  
-
 ```
 
 ### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
@@ -104,6 +103,7 @@ mean = instacart %>%
 mean=mutate(
   rename(mean,"Sun" = "0","Mon" = "1","Tue" = "2","Wed" = "3","Thur" = "4","Fri" = "5","Sat" = "6"))
 mean %>% knitr::kable()
+
 ```
 
 # Quesiton 2
@@ -135,6 +135,7 @@ BRFSS %>%
   summarise(countnumnber = n_distinct(locationdesc)) %>% 
   filter(countnumnber >= 7) %>% 
   knitr::kable()
+
 ```
 
 *In 2002, there are six states were observed at 7 or more locations, and the are CT,FL,MA,NC,NJ,PA. In 2010, there are 14 states were observed at 7 or more locations, and they are CA,CO,FL,MA,MD,NC,NE,NJ,NY,OH,PA,SC,TX,WA.*
@@ -183,7 +184,8 @@ acceldata=read_csv("accel_data.csv")%>%
                                      `Thursday` = "weekday",
                                      `Friday` = "weekday"),
          weekday_vs_weekend=factor(weekday_vs_weekend),
-         minute = as.numeric(minute))
+         minute = as.numeric(minute)
+         )
 
 
 ```
@@ -220,11 +222,7 @@ acceldata %>%
       title = "24h activity time",
       x = "minute",
       y = "activity Count",
-    caption = "single-panel plot" + 
-    theme(
-      plot.title = element_text(size = 13, hjust = 0.5),
-      axis.title.x = element_text(size = 8),
-      axis.title.y = element_text(size = 8)))
+    caption = "single-panel plot")
 ```
 
 *From the table,Sunday at noon has the most active periods, and Friday in the evening has the most active periods.*
