@@ -10,6 +10,7 @@ library(knitr)
 library(dplyr) 
 library(tidyr) 
 library(tidyverse)
+library(patchwork)
 library(p8105.datasets)
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -39,7 +40,7 @@ names(instacart)
 
 ### How many aisles are there, and which aisles are the most items ordered from?
 ```{r}
-instacart %>% 
+totalaisle=instacart %>% 
   group_by(aisle) %>% 
   summarize(asisle = n()) %>% 
   count()%>% 
@@ -53,21 +54,31 @@ instacart %>%
 
 ```
 
-*In the data `instacart`, there are 134 aisles. Furthermore, the most items orders form the data is `fresh vegetables`. * 
+*In the data `instacart`, there are 134 aisles. Furthermore, the most items orders form the data is `fresh vegetables` and it has 150609.* 
 
 ### Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 ```{r}
 instacart%>% 
   group_by(aisle) %>% 
   summarize(count = n()) %>% 
-  filter(count > 10000) %>% 
+  mutate(aisle = fct_reorder(factor(aisle), count))%>%
+  filter(count > 10000) %>%
   ggplot() +
-  geom_bar(aes(x = count, y = aisle, fill = aisle),stat = 'identity') +
-  labs(title = "Aisles and number of ordered ",x = "number of item", y = "Aisle name",) +
+  geom_point(aes(x = count, y = aisle, fill = aisle),stat = 'identity') +
+  labs(title = "Aisles and number of ordered ",
+       x = "number of item", 
+       y = "Aisle name",) +
   theme_bw() + 
-  theme(legend.position = 'none',axis.text.y = element_text(size = 7))
+  theme(legend.position = 'none',
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 4))+
+  scale_x_continuous(
+    breaks = c(20000,30000, 40000, 50000, 60000,70000, 80000,90000, 100000,110000 ,120000, 130000,140000,150000, 160000)
+    )
  
 ```
+
+*In the plot, it is obviously shows that fresh vegetables and fresh fruits are exceed 100000.*
 
 ### Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 ```{r}
@@ -98,7 +109,10 @@ mean = instacart %>%
   filter(product_name == c("Pink Lady Apples" ,"Coffee Ice Cream"))%>%
   group_by(product_name, order_dow) %>% 
   summarize(meanhour = mean(order_hour_of_day)) %>% 
-  pivot_wider(names_from = order_dow, values_from = meanhour)
+  pivot_wider(
+    names_from = order_dow, 
+    values_from = meanhour
+    )
 
 mean=mutate(
   rename(mean,"Sun" = "0","Mon" = "1","Tue" = "2","Wed" = "3","Thur" = "4","Fri" = "5","Sat" = "6"))
@@ -117,7 +131,9 @@ data("brfss_smart2010")
 ```{r}
 BRFSS = brfss_smart2010 %>%
   janitor::clean_names()%>%
-  filter(topic %in%  "Overall Health",response %in%  c("Poor", "Fair", 'Good', 'Very good',"Excellent"))%>%
+  filter(topic %in%  "Overall Health",
+         response %in%  c("Poor", "Fair", 'Good', 'Very good',"Excellent"))%>%
+  rename(state = locationabbr) %>% 
   mutate(response = forcats::fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))
 ```
 
@@ -125,13 +141,13 @@ BRFSS = brfss_smart2010 %>%
 ```{r}
 BRFSS %>% 
   filter(year == 2002) %>% 
-  group_by(locationabbr)%>% 
+  group_by(state)%>% 
   summarise(countnumnber = n_distinct(locationdesc)) %>% 
   filter(countnumnber >= 7) %>% 
   knitr::kable()
 BRFSS %>% 
   filter(year == 2010) %>% 
-  group_by(locationabbr)%>% 
+  group_by(state)%>% 
   summarise(countnumnber = n_distinct(locationdesc)) %>% 
   filter(countnumnber >= 7) %>% 
   knitr::kable()
@@ -144,9 +160,11 @@ BRFSS %>%
 ```{r}
 BRFSS%>%
   filter(response == c('Excellent'))%>%
-  group_by(locationabbr,year)%>%
+  group_by(state,year)%>%
   summarise(mean = mean(data_value))%>%
-  ggplot(aes(x = year, y = mean,color = locationabbr)) + 
+  ggplot(aes(x = year, 
+             y = mean,
+             color = state)) + 
   geom_point() + 
   geom_line() + 
   theme(legend.position = "right")
@@ -155,19 +173,27 @@ BRFSS%>%
 ### Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 ```{r}
 BRFSS %>% 
-  filter(locationabbr ==  c("NY"),year == c(2006,2010))%>% 
+  filter(state ==  c("NY"),year == c(2006,2010))%>% 
   select(year,response,data_value)%>% 
-  ggplot(aes(x = response, y = data_value)) +
+  ggplot(aes(x = response, 
+             y = data_value)) +
   geom_point() +
   geom_boxplot()+
+  labs(
+    title="Distribution of data",
+    x="Response",
+    y="Data Value"
+  )
   facet_grid(. ~ year)
 
 ```
 
+*In the graph, most of data value are excellent, very good and good respones, and it more than poor and fair.*
+
 # Problem 3
 ### Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
 ```{r}
-acceldata=read_csv("accel_data.csv")%>% 
+acceldata=read_csv("data/accel_data.csv")%>% 
   janitor::clean_names()%>%
   pivot_longer(activity_1:activity_1440, 
                names_to = "minute",
@@ -211,9 +237,9 @@ acceldata %>%
   knitr::kable()
 ```
 
-*From two table,it is obviously shows that the weekdays are higher than weekend.*
+*From two table,it is obviously shows that the weekdays are higher than weekend. In the weekdays, the total activities are increase.*
 
-### Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+### Accelerometer data allows the inspection activit.y over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 ```{r}
 acceldata %>% 
     ggplot(aes(x =minute , y = sum_activity, color = day, group = day_id)) + 
@@ -222,7 +248,11 @@ acceldata %>%
       title = "24h activity time",
       x = "minute",
       y = "activity Count",
-    caption = "single-panel plot")
+    caption = "single-panel plot")+
+    scale_x_continuous(
+      breaks = c(0, 240, 480, 720, 960, 1200, 1440), 
+      labels = c("00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "23:59pm")
+    )
 ```
 
-*From the table,Sunday at noon has the most active periods, and Friday in the evening has the most active periods.*
+*From the table, the time period between 6am, 7am,8am,9am,12pm,4pm,8pm,9pm and10pm are more higher, and Wednesday and Friday are more higher on those time.*
